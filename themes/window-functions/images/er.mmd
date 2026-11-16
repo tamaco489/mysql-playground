@@ -1,0 +1,36 @@
+erDiagram
+  departments ||--o{ employees : "所属する"
+  employees ||--o{ salary_histories : "改定される"
+  employees ||--o{ salary_payments : "支給される"
+  employees ||--o{ attendance_records : "申請する"
+
+  departments {
+    INT id PK
+    VARCHAR name
+  }
+  employees {
+    INT id PK
+    INT department_id FK
+    VARCHAR name
+    DATE hired_on
+  }
+  salary_histories {
+    INT id PK
+    INT employee_id FK
+    INT monthly_salary
+    DATE effective_from
+  }
+  salary_payments {
+    INT id PK
+    INT employee_id FK
+    INT amount
+    DATE paid_on
+  }
+  attendance_records {
+    INT id PK
+    INT employee_id FK
+    DATE work_date
+    TIME clock_in
+    TIME clock_out
+    DATETIME submitted_at
+  }

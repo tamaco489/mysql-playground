@@ -3,7 +3,7 @@
 SERVICE    := mysql
 MYSQL_EXEC := docker compose exec -e MYSQL_PWD=root $(SERVICE)
 
-.PHONY: help up down restart reset ps logs sh mysql
+.PHONY: help up down restart reset ps logs sh mysql sql
 
 help: ## コマンドの一覧を表示する
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "} {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
@@ -31,3 +31,8 @@ sh: ## コンテナに bash で入る
 
 mysql: ## mysql クライアントで接続する
 	$(MYSQL_EXEC) mysql -uroot
+
+sql: ## SQL ファイルを実行する (例: make sql FILE=themes/window-functions/ddl/schema.sql)
+	@test -n "$(FILE)" || { echo "FILE を指定してください (例: make sql FILE=themes/window-functions/ddl/schema.sql)"; exit 1; }
+	@test -f "$(FILE)" || { echo "ファイルがありません: $(FILE)"; exit 1; }
+	docker compose exec -T -e MYSQL_PWD=root $(SERVICE) mysql -uroot --table < $(FILE)
