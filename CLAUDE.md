@@ -1,3 +1,5 @@
+# mysql-playground
+
 ## GitHub の運用 (gh-flow)
 
 コミット・Issue・PR は gh-flow プラグインの規約に従う。規約は gh-flow のスキルが実行時に読み込む。
