@@ -17,7 +17,7 @@ CREATE TABLE `departments` (
     `id`   INT         NOT NULL AUTO_INCREMENT COMMENT '部署 ID',
     `name` VARCHAR(50) NOT NULL                COMMENT '部署名',
     PRIMARY KEY (`id`)
-) COMMENT = '部署';
+) COMMENT = '部署テーブル。社員は必ずどこかの部署に所属する。';
 
 CREATE TABLE `employees` (
     `id`            INT         NOT NULL AUTO_INCREMENT COMMENT '社員 ID',
@@ -27,7 +27,7 @@ CREATE TABLE `employees` (
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_employees_department`
         FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`)
-) COMMENT = '社員';
+) COMMENT = '社員テーブル。部署に所属する社員の情報を保持する。';
 
 -- 上位 N 件の題材
 CREATE TABLE `salary_histories` (
@@ -38,7 +38,7 @@ CREATE TABLE `salary_histories` (
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_salary_histories_employee`
         FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
-) COMMENT = '給与改定履歴。改定のたびに 1 行増え、effective_from が最も新しい行が現在の月給';
+) COMMENT = '給与改定履歴テーブル。改定のたびに 1 行増え、effective_from が最も新しい行が現在の月給';
 
 -- 累計の題材
 CREATE TABLE `salary_payments` (
@@ -49,7 +49,7 @@ CREATE TABLE `salary_payments` (
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_salary_payments_employee`
         FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
-) COMMENT = '給与の支給実績。毎月の支給ごとに 1 行';
+) COMMENT = '給与の支給実績テーブル。毎月の支給ごとに 1 行';
 
 -- 重複除去の題材
 CREATE TABLE `attendance_records` (
@@ -62,4 +62,4 @@ CREATE TABLE `attendance_records` (
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_attendance_records_employee`
         FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
-) COMMENT = '勤怠。修正申請のたびに同じ社員・同じ勤務日の行が増え、submitted_at が最も新しい行が有効';
+) COMMENT = '勤怠テーブル。修正申請のたびに同じ社員・同じ勤務日の行が増え、submitted_at が最も新しい行が有効';
