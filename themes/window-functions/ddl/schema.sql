@@ -3,68 +3,63 @@
 -- 何度流しても同じ状態になるよう、テーブルは作り直す。
 -- インデックスは主キーと外部キーだけにする。インデックスの有無による差は性能比較で見る。
 
-CREATE DATABASE IF NOT EXISTS window_functions;
-USE window_functions;
+CREATE DATABASE IF NOT EXISTS `window_functions`;
+USE `window_functions`;
 
 -- 外部キーで参照される側を後に消す
-DROP TABLE IF EXISTS attendance_records;
-DROP TABLE IF EXISTS salary_payments;
-DROP TABLE IF EXISTS salary_histories;
-DROP TABLE IF EXISTS employees;
-DROP TABLE IF EXISTS departments;
+DROP TABLE IF EXISTS `attendance_records`;
+DROP TABLE IF EXISTS `salary_payments`;
+DROP TABLE IF EXISTS `salary_histories`;
+DROP TABLE IF EXISTS `employees`;
+DROP TABLE IF EXISTS `departments`;
 
--- 部署
-CREATE TABLE departments (
-  id   INT         NOT NULL AUTO_INCREMENT,
-  name VARCHAR(50) NOT NULL,
-  PRIMARY KEY (id)
-);
+CREATE TABLE `departments` (
+    `id`   INT         NOT NULL AUTO_INCREMENT COMMENT '部署 ID',
+    `name` VARCHAR(50) NOT NULL                COMMENT '部署名',
+    PRIMARY KEY (`id`)
+) COMMENT = '部署';
 
--- 社員
-CREATE TABLE employees (
-  id            INT         NOT NULL AUTO_INCREMENT,
-  department_id INT         NOT NULL,
-  name          VARCHAR(50) NOT NULL,
-  hired_on      DATE        NOT NULL,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_employees_department
-    FOREIGN KEY (department_id) REFERENCES departments (id)
-);
+CREATE TABLE `employees` (
+    `id`            INT         NOT NULL AUTO_INCREMENT COMMENT '社員 ID',
+    `department_id` INT         NOT NULL                COMMENT '所属する部署の ID',
+    `name`          VARCHAR(50) NOT NULL                COMMENT '社員名',
+    `hired_on`      DATE        NOT NULL                COMMENT '入社日',
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_employees_department`
+        FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`)
+) COMMENT = '社員';
 
--- 給与改定履歴 (上位 N 件の題材)
--- 改定のたびに 1 行増える。effective_from が最も新しい行が現在の月給。
-CREATE TABLE salary_histories (
-  id             INT  NOT NULL AUTO_INCREMENT,
-  employee_id    INT  NOT NULL,
-  monthly_salary INT  NOT NULL,
-  effective_from DATE NOT NULL,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_salary_histories_employee
-    FOREIGN KEY (employee_id) REFERENCES employees (id)
-);
+-- 上位 N 件の題材
+CREATE TABLE `salary_histories` (
+    `id`             INT  NOT NULL AUTO_INCREMENT COMMENT '給与改定履歴 ID',
+    `employee_id`    INT  NOT NULL                COMMENT '改定された社員の ID',
+    `monthly_salary` INT  NOT NULL                COMMENT '改定後の月給 (円)',
+    `effective_from` DATE NOT NULL                COMMENT '改定後の月給が適用される日',
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_salary_histories_employee`
+        FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
+) COMMENT = '給与改定履歴。改定のたびに 1 行増え、effective_from が最も新しい行が現在の月給';
 
--- 給与の支給実績 (累計の題材)
-CREATE TABLE salary_payments (
-  id          INT  NOT NULL AUTO_INCREMENT,
-  employee_id INT  NOT NULL,
-  amount      INT  NOT NULL,
-  paid_on     DATE NOT NULL,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_salary_payments_employee
-    FOREIGN KEY (employee_id) REFERENCES employees (id)
-);
+-- 累計の題材
+CREATE TABLE `salary_payments` (
+    `id`          INT  NOT NULL AUTO_INCREMENT COMMENT '支給実績 ID',
+    `employee_id` INT  NOT NULL                COMMENT '支給を受けた社員の ID',
+    `amount`      INT  NOT NULL                COMMENT '支給額 (円)',
+    `paid_on`     DATE NOT NULL                COMMENT '支給日',
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_salary_payments_employee`
+        FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
+) COMMENT = '給与の支給実績。毎月の支給ごとに 1 行';
 
--- 勤怠 (重複除去の題材)
--- 修正申請のたびに、同じ社員・同じ日 (work_date) の行が増える。
--- submitted_at が最も新しい行が有効な勤怠。
-CREATE TABLE attendance_records (
-  id           INT      NOT NULL AUTO_INCREMENT,
-  employee_id  INT      NOT NULL,
-  work_date    DATE     NOT NULL,
-  clock_in     TIME     NOT NULL,
-  clock_out    TIME     NOT NULL,
-  submitted_at DATETIME NOT NULL,
-  PRIMARY KEY (id),
-  CONSTRAINT fk_attendance_records_employee
-    FOREIGN KEY (employee_id) REFERENCES employees (id)
-);
+-- 重複除去の題材
+CREATE TABLE `attendance_records` (
+    `id`           INT      NOT NULL AUTO_INCREMENT COMMENT '勤怠 ID',
+    `employee_id`  INT      NOT NULL                COMMENT '申請した社員の ID',
+    `work_date`    DATE     NOT NULL                COMMENT '勤務日',
+    `clock_in`     TIME     NOT NULL                COMMENT '出勤時刻',
+    `clock_out`    TIME     NOT NULL                COMMENT '退勤時刻',
+    `submitted_at` DATETIME NOT NULL                COMMENT '申請日時。修正申請のたびに新しい日時の行が増える',
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_attendance_records_employee`
+        FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`)
+) COMMENT = '勤怠。修正申請のたびに同じ社員・同じ勤務日の行が増え、submitted_at が最も新しい行が有効';
