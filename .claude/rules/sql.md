@@ -16,6 +16,19 @@ INNER JOIN employees AS e
     ON e.id = sh.employee_id
 ```
 
+## 行末コメント
+
+- コメント付きの行が連続している範囲ごとに、コメントの位置を揃える
+- 位置は、その範囲で一番長いコードの行の末尾から、半角スペース 2 つ空けたところにする
+- 途中にコメントのない行が挟まったら、そこで範囲を区切る
+
+```sql
+ROW_NUMBER() OVER (
+    PARTITION BY sh.employee_id      -- 社員ごとに番号を振り直す
+    ORDER BY sh.effective_from DESC  -- 新しい給与改定日から 1, 2, 3 ... と振る
+) AS rn
+```
+
 ## 結合
 
 - 内部結合は `JOIN` ではなく `INNER JOIN` と明示する
